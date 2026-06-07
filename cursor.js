@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Set standard class and structure
     customCursor.className = "custom-cursor";
-    customCursor.innerHTML = '<div class="pulse-dot"></div><div class="pulse-ring"></div>';
+    customCursor.innerHTML = '<div class="cursor-plus"></div>';
 
     // Inject global styles to override and unify cursor aesthetics
     const styleEl = document.createElement("style");
@@ -22,8 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         
         .custom-cursor {
-            width: 32px;
-            height: 32px;
+            width: 38px;
+            height: 38px;
             position: fixed;
             pointer-events: none;
             z-index: 99999;
@@ -32,58 +32,49 @@ document.addEventListener("DOMContentLoaded", () => {
             align-items: center;
             justify-content: center;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.2s ease, transform 0.15s ease;
         }
         
-        /* Show custom cursor once mouse moves */
         .custom-cursor.active {
             opacity: 1;
         }
         
-        .pulse-dot {
-            width: 6px;
-            height: 6px;
-            background-color: #0D9488; /* Medical Teal */
+        .cursor-plus {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             border-radius: 50%;
+            background: rgba(13,148,136,0.10);
+            box-shadow: 0 0 16px rgba(13, 148, 136, 0.18);
+            backdrop-filter: blur(6px);
+        }
+        .cursor-plus::before,
+        .cursor-plus::after {
+            content: '';
             position: absolute;
-            box-shadow: 0 0 10px rgba(13, 148, 136, 0.8);
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s;
+            width: 2.8px;
+            height: 12px;
+            background: #0D9488;
+            border-radius: 999px;
+            box-shadow: 0 0 8px rgba(13,148,136,0.75);
         }
+        .cursor-plus::before { transform: rotate(0deg); }
+        .cursor-plus::after { transform: rotate(90deg); }
         
-        .pulse-ring {
-            width: 24px;
-            height: 24px;
-            border: 1.5px solid #06B6D4; /* Medical Cyan */
-            border-radius: 50%;
-            position: absolute;
-            box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
-            animation: bioPulse 2.2s infinite ease-in-out;
-            transition: width 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                        height 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
-                        border-color 0.25s, box-shadow 0.25s;
+        .custom-cursor.hovering {
+            transform: translate(-50%, -50%) scale(1.1);
         }
-        
-        .custom-cursor.hovering .pulse-dot {
-            transform: scale(1.6);
-            background-color: #10B981; /* Active Mint */
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.8);
-        }
-        
-        .custom-cursor.hovering .pulse-ring {
-            width: 36px;
-            height: 36px;
-            border-color: #10B981; /* Active Mint */
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.6);
+        .custom-cursor.hovering .cursor-plus {
+            background: rgba(13,148,136,0.16);
+            box-shadow: 0 0 20px rgba(13, 148, 136, 0.28);
         }
         
         .custom-cursor.hide-custom-cursor {
             opacity: 0 !important;
             pointer-events: none;
-        }
-        
-        @keyframes bioPulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.15); opacity: 0.4; }
         }
     `;
     document.head.appendChild(styleEl);
