@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELY Backend Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 50px auto; padding: 20px; }
+        .test-box { background: #f0f9ff; padding: 15px; margin: 10px 0; border-left: 4px solid #0D9488; border-radius: 6px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 6px; }
+        .ok { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        button { background: #0F2E3A; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background: #0D9488; }
+    </style>
+</head>
+<body>
+    <h1>🧪 ELY Backend Test Console</h1>
+    
+    <div class="test-box">
+        <h3>Step 1: Check Backend Connection</h3>
+        <button onclick="testConnection()">Test Backend</button>
+        <div id="connection-status"></div>
+    </div>
+
+    <div class="test-box">
+        <h3>Step 2: Test Login</h3>
+        <p>Username: <strong>Reena</strong></p>
+        <p>Password: <strong>ElyAdmin</strong></p>
+        <button onclick="testLogin()">Test Login</button>
+        <div id="login-status"></div>
+    </div>
+
+    <div class="test-box">
+        <h3>Step 3: Check Database</h3>
+        <button onclick="testDatabase()">Check Database</button>
+        <div id="database-status"></div>
+    </div>
+
+    <div class="test-box">
+        <h3>📋 Logs</h3>
+        <div id="logs" style="background: #1e293b; color: #10b981; padding: 15px; border-radius: 6px; font-family: monospace; max-height: 300px; overflow-y: auto; font-size: 12px;"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        
+        function addLog(message, type = 'info') {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#ef4444' : type === 'success' ? '#10b981' : '#94a3b8';
+            logs.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        async function testConnection() {
+            const status = document.getElementById('connection-status');
+            status.innerHTML = '⏳ Checking...';
+            addLog('Testing backend connection...');
+            
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    status.innerHTML = `<div class="status ok">✓ Backend is running! Status: ${data.status}</div>`;
+                    addLog('✓ Backend connection successful!', 'success');
+                } else {
+                    status.innerHTML = `<div class="status error">✗ Backend error: ${response.status}</div>`;
+                    addLog('✗ Backend error: ' + response.status, 'error');
+                }
+            } catch (error) {
+                status.innerHTML = `<div class="status error">✗ Cannot connect to backend. Make sure it's running on http://localhost:3000</div>`;
+                addLog('✗ Connection failed: ' + error.message, 'error');
+                addLog('Run: cd backend && npm start', 'error');
+            }
+        }
+
+        async function testLogin() {
+            const status = document.getElementById('login-status');
+            status.innerHTML = '⏳ Testing login...';
+            addLog('Attempting login with Reena/ElyAdmin...');
+            
+            try {
+                const response = await fetch(`${API_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: 'Reena', 
+                        password: 'ElyAdmin' 
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    status.innerHTML = `<div class="status ok">
+                        ✓ Login successful!<br>
+                        Admin: ${data.adminName}<br>
+                        Token: ${data.token.substring(0, 20)}...
+                    </div>`;
+                    addLog('✓ Login successful! Token received', 'success');
+                    localStorage.setItem('adminToken', data.token);
+                } else {
+                    status.innerHTML = `<div class="status error">✗ Login failed: ${data.error}</div>`;
+                    addLog('✗ Login failed: ' + data.error, 'error');
+                }
+            } catch (error) {
+                status.innerHTML = `<div class="status error">✗ Error: ${error.message}</div>`;
+                addLog('✗ Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testDatabase() {
+            const status = document.getElementById('database-status');
+            status.innerHTML = '⏳ Checking database...';
+            addLog('Checking database structure...');
+            
+            try {
+                // Try to fetch orders which requires database
+                const token = localStorage.getItem('adminToken');
+                if (!token) {
+                    status.innerHTML = `<div class="status error">✗ Not logged in. Test login first.</div>`;
+                    addLog('✗ No auth token. Login first', 'error');
+                    return;
+                }
+
+                const response = await fetch(`${API_URL}/orders`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    status.innerHTML = `<div class="status ok">✓ Database OK<br>Orders in database: ${data.length}</div>`;
+                    addLog('✓ Database is working. Orders: ' + data.length, 'success');
+                } else {
+                    status.innerHTML = `<div class="status error">✗ Database error: ${response.status}</div>`;
+                    addLog('✗ Database error: ' + response.status, 'error');
+                }
+            } catch (error) {
+                status.innerHTML = `<div class="status error">✗ Error: ${error.message}</div>`;
+                addLog('✗ Error: ' + error.message, 'error');
+            }
+        }
+
+        addLog('Test console loaded. Click buttons to test.');
+    </script>
+</body>
+</html>
